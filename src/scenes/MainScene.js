@@ -37,19 +37,36 @@ export class MainScene extends Phaser.Scene {
                     case 3:
                         groundLayer.putTileAt(3, x, y);
 
-                        if(Math.random() < 0.2){
+                        if(Math.random() < 0.4){
                             wallLayer.putTileAt(1, x, y);
                         }
                         break;
                     case 2:
                         groundLayer.putTileAt(2, x, y);
-                        if(Math.random() < 0.2){
+
+                        if(Math.random() < 0.4){
                             wallLayer.putTileAt(1, x, y);
                         }
                         break;
                 }
             }
         }
+
+        wallLayer.removeTileAt(1, 1);
+        wallLayer.removeTileAt(1, 2);
+        wallLayer.removeTileAt(2, 1);
+
+        wallLayer.removeTileAt(map.width -2, 1);
+        wallLayer.removeTileAt(map.width -2, 2);
+        wallLayer.removeTileAt(map.width -3, 1);
+
+        wallLayer.removeTileAt(1, map.height -2);
+        wallLayer.removeTileAt(1, map.height -3);
+        wallLayer.removeTileAt(2, map.height -2);
+
+        wallLayer.removeTileAt(map.width -2, map.height -2);
+        wallLayer.removeTileAt(map.width -2, map.height -3);
+        wallLayer.removeTileAt(map.width -3, map.height -2);
 
         this.anims.create({
             key: 'down',
