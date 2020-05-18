@@ -2,7 +2,7 @@
   "name": "bomberman",
   "version": "1.0.0",
   "description": "A Bomberman game made in phaser",
-  "main": "src/index.js",
+  "main": "src/client/index.js",
   "scripts": {
     "build": "webpack --config webpack/prod.js ",
     "start": "webpack-dev-server --config webpack/base.js --open"
@@ -18,7 +18,7 @@
     "terser-webpack-plugin": "^2.2.1",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.9.0",
+    "webpack-dev-server": "^3.11.0",
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
