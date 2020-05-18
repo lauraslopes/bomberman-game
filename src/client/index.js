@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import {MainScene} from "./scenes/MainScene";
+import {StartMenu} from "./scenes/StartMenu";
 
 const config = {
     type: Phaser.AUTO,
@@ -7,14 +8,7 @@ const config = {
     pixelArt: true,
     width: 336,
     height: 336,
-    scene: [MainScene],
-    physics: {
-        default: "arcade",
-        arcade: {
-            gravity: {y: 0},
-            debug: true
-        }
-    }
+    scene: [StartMenu, MainScene],
 };
 
 new Phaser.Game(config);

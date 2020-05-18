@@ -19,8 +19,17 @@ import {
 } from "../Constants";
 
 export class MainScene extends Phaser.Scene {
-    constructor(config) {
-        super(config);
+    constructor() {
+        super({
+            key: "MainScene",
+            physics: {
+                default: "arcade",
+                arcade: {
+                    gravity: {y: 0},
+                    debug: true
+                }
+            }
+        });
 
         this.players = new Map();
         //this.activePlayers = [];
