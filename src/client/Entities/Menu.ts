@@ -1,6 +1,11 @@
-import {PlayerConfig} from "../Constants";
+import {PlayerConfigDictionary} from "../Constants";
+import Image = Phaser.GameObjects.Image;
+import Math = Phaser.Math;
 
 export class MenuOption {
+    text: string;
+    callback: Function;
+
     /**
      * A Menu Item Object.
      *
@@ -9,13 +14,18 @@ export class MenuOption {
      * @param {string} text
      * @param {function} callback
      */
-    constructor(text, callback) {
+    constructor(text: string, callback: Function) {
         this.text = text;
         this.callback = callback;
     }
 }
 
 export class Menu extends Phaser.GameObjects.Container {
+    private _selectedOption: any;
+    menuOptions: MenuOption[];
+    cursor: Image | undefined;
+    inputs: any;
+
     //region Getters/Setters
     /**
      * Returns the selected option's index
@@ -30,8 +40,11 @@ export class Menu extends Phaser.GameObjects.Container {
      * @param {integer} value
      */
     set selectedOption(value) {
-        this._selectedOption = Phaser.Math.Clamp(value, 0, this.menuOptions.length - 1);
-        this.cursor.y = this._selectedOption * 20;
+        this._selectedOption = Math.Clamp(value, 0, this.menuOptions.length - 1);
+
+        if (this.cursor) {
+            this.cursor.y = this._selectedOption * 20;
+        }
     }
 
     //endregion
@@ -47,7 +60,7 @@ export class Menu extends Phaser.GameObjects.Container {
      * @param {integer} y
      * @param {MenuOption[]} menuOptions An array of options to be displayed in the menu
      */
-    constructor(scene, x = 0, y = 0, menuOptions = []) {
+    constructor(scene: Phaser.Scene, x: number = 0, y: number = 0, menuOptions: MenuOption[] = []) {
         super(scene, x, y);
 
         this.menuOptions = menuOptions
@@ -78,7 +91,7 @@ export class Menu extends Phaser.GameObjects.Container {
         this.add([
             this.cursor,
             /* Adds the menu options as text instances */
-            ...this.menuOptions.map((option, index) => this.scene.add.text(20, index * 20, option.text))
+            ...this.menuOptions.map((option:MenuOption, index:number) => this.scene.add.text(20, index * 20, option.text))
         ]);
     }
 
@@ -87,16 +100,16 @@ export class Menu extends Phaser.GameObjects.Container {
      */
     initKeys() {
         // Loads keys from user settings
-        let keys = PlayerConfig[0].keys;
+        let keys = PlayerConfigDictionary.getConfig(0).keys;
 
-        this.cursors = {
+        this.inputs = {
             up: this.scene.input.keyboard.addKey(keys.up),
             down: this.scene.input.keyboard.addKey(keys.down),
             space: this.scene.input.keyboard.addKey(keys.space),
         };
 
-        this.cursors.up.on('down', () => this.selectedOption--);
-        this.cursors.down.on('down', () => this.selectedOption++);
-        this.cursors.space.on('down', this.menuOptions[this.selectedOption].callback);
+        this.inputs.up.on('down', () => this.selectedOption--);
+        this.inputs.down.on('down', () => this.selectedOption++);
+        this.inputs.space.on('down', () => this.menuOptions[this.selectedOption].callback());
     }
 }

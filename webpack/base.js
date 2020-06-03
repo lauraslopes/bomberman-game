@@ -1,20 +1,21 @@
 const webpack = require("webpack");
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 
 module.exports = {
-    entry: "./src/client/index.js",
+    entry: "./src/client/index.ts",
     mode: "development",
-    devtool: "eval-source-map",
+    devtool: 'inline-source-map',
+    output: {
+        filename: "bundle.js",
+        path: path.resolve(__dirname, './dist'),
+    },
     module: {
         rules: [
             {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader"
-                }
+                test: [/\.tsx?$/],
+                use: "ts-loader"
             },
             {
                 test: [/\.vert$/, /\.frag$/],
@@ -25,6 +26,20 @@ module.exports = {
                 use: "file-loader"
             }
         ]
+    },
+    resolve: {
+        extensions: [".ts", ".tsx", ".js"]
+    },
+    devServer: {
+        port: 3030,
+        open: true,
+        //host: '0.0.0.0',
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3000',
+                pathRewrite: {'^/api': ''}
+            }
+        }
     },
     plugins: [
         new CleanWebpackPlugin({
