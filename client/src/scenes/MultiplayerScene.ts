@@ -1,15 +1,12 @@
-// @ts-ignore
 import ground from "../assets/ground.png";
-// @ts-ignore
 import characters from "../assets/characters.png";
-// @ts-ignore
 import bomb from "../assets/bomb.png";
-// @ts-ignore
 import powerUps from "../assets/powerups.png";
-// @ts-ignore
 import skull from "../assets/skull.png";
 
-import {Player} from "../Entities/Player";
+import io from "socket.io-client"
+
+import {Player, PlayerInfo} from "../Entities/Player";
 import {
     AvailablePowerups,
     MAP_HEIGHT,
@@ -20,14 +17,13 @@ import {
     TILE_WIDTH,
     WallType
 } from "../Constants";
-
-import Tile = Phaser.Tilemaps.Tile;
-import DynamicTilemapLayer = Phaser.Tilemaps.DynamicTilemapLayer;
-import Tilemap = Phaser.Tilemaps.Tilemap;
 import Socket = SocketIOClient.Socket;
+import Tilemap = Phaser.Tilemaps.Tilemap;
+import DynamicTilemapLayer = Phaser.Tilemaps.DynamicTilemapLayer;
+import Tile = Phaser.Tilemaps.Tile;
 
-export class MainScene extends Phaser.Scene {
-    players: Map<number, Player>;
+export class MultiplayerScene extends Phaser.Scene {
+    players: Map<string, Player>;
     wallCount: number;
     powerUpStash!: PowerupType[];
     keys: any;
@@ -35,11 +31,12 @@ export class MainScene extends Phaser.Scene {
     map!: Tilemap;
     groundLayer!: DynamicTilemapLayer;
     powerupLayer!: DynamicTilemapLayer;
-    socket: Socket | undefined;
+    socket!: Socket;
+    activePlayers: string[];
 
     constructor() {
         super({
-            key: "MainScene",
+            key: "MultiplayerScene",
             physics: {
                 default: "arcade",
                 arcade: {
@@ -50,6 +47,7 @@ export class MainScene extends Phaser.Scene {
         });
 
         this.players = new Map();
+        this.activePlayers = [];
         this.wallCount = 0;
     }
 
@@ -63,6 +61,7 @@ export class MainScene extends Phaser.Scene {
 
     create() {
         this.generateMap();
+        this.startConnection();
         this.initKeys();
 
         this.powerUpStash = Phaser.Utils.Array.Shuffle([...AvailablePowerups]);
@@ -218,7 +217,7 @@ export class MainScene extends Phaser.Scene {
      * @param {integer} x
      * @param {integer} y
      */
-    destroyWall(x: number, y: number) {
+    destroyWall(x: any, y: any) {
         let tileAt = this.wallLayer.getTileAt(x, y);
         if (tileAt && tileAt.index === 1) {
             this.wallLayer.removeTileAt(x, y);
@@ -229,6 +228,105 @@ export class MainScene extends Phaser.Scene {
                 this.spawnPowerup(x, y);
             }
         }
+    }
+
+    //startConnection() {
+    //    const WebSocketClient = require('websocket').client;
+    //
+    //    const client = new WebSocketClient();
+    //
+    //    client.on('connectFailed', error => console.log('Connect Error: ' + error.toString()));
+    //
+    //    const WebSocketConnection = require("websocket/lib/WebSocketConnection");
+    //    /** @param {WebSocketConnection} connection */
+    //    let initConnection = function(connection) {
+    //        console.log('WebSocket Client Connected');
+    //
+    //        connection.on('error', error => console.log("Connection Error: " + error.toString()));
+    //        connection.on('close', () => console.log('echo-protocol Connection Closed'));
+    //        connection.on('message', message => {
+    //            if (message.type === 'utf8') {
+    //                console.log("Received: '" + message.utf8Data + "'");
+    //            }
+    //        });
+    //
+    //        function sendNumber() {
+    //            if (connection.connected) {
+    //                const number = Math.round(Math.random() * 0xFFFFFF);
+    //                connection.sendUTF(number.toString());
+    //                setTimeout(sendNumber, 1000);
+    //            }
+    //        }
+    //
+    //        sendNumber();
+    //    };
+    //    client.on('connect', initConnection);
+    //
+    //    client.connect('ws://localhost:8080/', 'echo-protocol');
+    //}
+
+    startConnection() {
+        let spawns = this.getSpawnPosition();
+
+        this.socket = io({path: "/api/multiplayer"});
+
+        this.socket.on('welcome', (playerInfo: any) => {
+            console.log(playerInfo);
+            let playerNumber = playerInfo.playerNumber;
+
+            this.activePlayers.push(playerInfo.id);
+            let spawn = spawns[playerNumber];
+            let player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), playerInfo, false);
+            player.setCollisionLayer([this.groundLayer, this.wallLayer, this.powerupLayer]);
+            this.cameras.main.startFollow(player);
+
+            this.players.set(playerInfo.id, player);
+
+            this.socket.emit("hello", player.getInfo());
+        });
+
+        this.socket.on('currentPlayers', (state: { [x: string]: PlayerInfo; }) => {
+            Object.keys(state).forEach(key => {
+                let playerInfo = state[key];
+
+                if (this.activePlayers.includes(playerInfo.id)) {
+                    let player = this.players.get(key);
+                    if (player) {
+                        if (playerInfo.position) {
+                            [player.x, player.y] = [playerInfo.position.x, playerInfo.position.y];
+                            console.log("posset" + playerInfo.id);
+                        }
+                        player.isDead = playerInfo.isDead;
+                        player.isCursed = playerInfo.isCursed;
+                    } else {
+                        let spawn = spawns[playerInfo.playerNumber];
+                        player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), playerInfo, true);
+                        this.players.set(playerInfo.id, player);
+                    }
+                }
+
+            })
+            console.log(state);
+        });
+
+        this.socket.on('PM', (state: [string, number, number, number]) => {
+            console.log(`Player move received`);
+            /** @type {Player} */
+            let player = this.players.get(state[0]);
+            if (player) {
+                player.walkTo(state[1], state[2], state[3]);
+            }
+        });
+
+        this.socket.on('playerLeft', (playerId: string) => {
+            console.log(`Player left received`);
+            /** @type {Player} */
+            let player = this.players.get(playerId);
+            if (player) {
+                this.players.delete(playerId)
+                player.destroy();
+            }
+        });
     }
 
     getSpawnPosition() {
@@ -265,13 +363,14 @@ export class MainScene extends Phaser.Scene {
     }
 
     createPlayer(playerNum: number) {
-        if (!this.players.has(playerNum)) {
+        if (!this.players.has(playerNum + "")) {
+            this.activePlayers.push(playerNum + "");
             let spawnPosition = this.getSpawnPosition();
             let spawn = spawnPosition[playerNum];
 
             let player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), undefined, false);
             player.setCollisionLayer([this.groundLayer, this.wallLayer, this.powerupLayer]);
-            this.players.set(playerNum, player);
+            this.players.set(playerNum + "", player);
 
             return player;
         }

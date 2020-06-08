@@ -29,11 +29,13 @@ export class StartMenu extends Phaser.Scene {
     singlePlayer() {
         this.scene.transition({
             target: "MainScene",
-        })
+        });
     }
 
     multiplayer() {
-        alert("Coming Soon!");
+        this.scene.transition({
+            target: "MultiplayerScene",
+        });
     }
 
     options() {

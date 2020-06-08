@@ -1,0 +1,22 @@
+{
+  "name": "bomberman",
+  "version": "1.0.0",
+  "description": "A Bomberman game made in phaser",
+  "main": "src/client/index.ts",
+  "scripts": {
+    "build": "webpack --config webpack/prod.js ",
+    "start": "webpack-dev-server --config webpack/base.js",
+    "server": "nodemon src/server/bin/www"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.6",
+    "@types/socket.io": "^2.1.8",
+    "nodemon": "^1.17.3",
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.9.5"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
+}

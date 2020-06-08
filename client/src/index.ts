@@ -4,6 +4,7 @@ import {StartMenu} from "./scenes/StartMenu";
 
 import Scale = Phaser.Scale;
 import Zoom = Phaser.Scale.Zoom;
+import {MultiplayerScene} from "./scenes/MultiplayerScene";
 
 new Phaser.Game({
     type: Phaser.AUTO,
@@ -13,5 +14,5 @@ new Phaser.Game({
     },
     width: 336,
     height: 336,
-    scene: [StartMenu, MainScene],
+    scene: [StartMenu, MainScene, MultiplayerScene],
 });

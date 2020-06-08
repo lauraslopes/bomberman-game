@@ -1,5 +1,5 @@
 import {MAX_BOMB, MAX_POWER, MAX_SPEED, PlayerConfigDictionary, PlayerDirection} from "../Constants";
-import {GameScene} from "../../../@types/GameScene";
+import {GameScene} from "../../@types/GameScene";
 
 import ParticleEmitter = Phaser.GameObjects.Particles.ParticleEmitter;
 import Sprite = Phaser.GameObjects.Sprite;
@@ -33,12 +33,9 @@ export class Player extends Container {
     body!: Body
     scene!: GameScene
 
-    constructor(scene: Phaser.Scene, x: number = 0, y: number = 0, playerInfo: PlayerInfo = {
+    constructor(scene: Phaser.Scene, x: number = 0, y: number = 0, playerInfo: any = {
         id: "",
         playerNumber: -1,
-        isCursed: false,
-        isDead: false,
-        position: new Vector2(0, 0),
     }, isNPC: boolean = false) {
         super(scene, x, y);
 
@@ -304,7 +301,7 @@ export class Player extends Container {
             this.playerSprite.anims.stop();
         }
 
-        if (this.lastMoveUpdate && Date.now() - this.lastMoveUpdate < 200) {
+        if (this.scene.socket && this.lastMoveUpdate && Date.now() - this.lastMoveUpdate < 200) {
             const pos = new Phaser.Math.Vector3(this.x, this.y, direction);
             if (this.oldPosition && !pos.equals(this.oldPosition)) {
                 this.scene.socket.emit('PM', [pos.x, pos.y, direction]);

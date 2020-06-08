@@ -4,8 +4,6 @@ import bomb from "../assets/bomb.png";
 import powerUps from "../assets/powerups.png";
 import skull from "../assets/skull.png";
 
-//import io from "socket.io-client"
-
 import {Player} from "../Entities/Player";
 import {
     AvailablePowerups,
@@ -18,7 +16,22 @@ import {
     WallType
 } from "../Constants";
 
+import Tile = Phaser.Tilemaps.Tile;
+import DynamicTilemapLayer = Phaser.Tilemaps.DynamicTilemapLayer;
+import Tilemap = Phaser.Tilemaps.Tilemap;
+import Socket = SocketIOClient.Socket;
+
 export class MainScene extends Phaser.Scene {
+    players: Map<number, Player>;
+    wallCount: number;
+    powerUpStash!: PowerupType[];
+    keys: any;
+    wallLayer: any;
+    map!: Tilemap;
+    groundLayer!: DynamicTilemapLayer;
+    powerupLayer!: DynamicTilemapLayer;
+    socket: Socket | undefined;
+
     constructor() {
         super({
             key: "MainScene",
@@ -32,7 +45,6 @@ export class MainScene extends Phaser.Scene {
         });
 
         this.players = new Map();
-        //this.activePlayers = [];
         this.wallCount = 0;
     }
 
@@ -46,14 +58,13 @@ export class MainScene extends Phaser.Scene {
 
     create() {
         this.generateMap();
-        //this.startConnection();
         this.initKeys();
 
         this.powerUpStash = Phaser.Utils.Array.Shuffle([...AvailablePowerups]);
     }
 
-    update(time, delta) {
-        Array.from(this.players.values()).forEach(player => player.update(time, delta));
+    update(time: any, delta: any) {
+        Array.from(this.players.values()).forEach(player => player.update());
 
         // FOR TEST ONLY
         if (this.keys.TAB.isDown) {
@@ -73,8 +84,8 @@ export class MainScene extends Phaser.Scene {
         });
         this.map = map;
 
-        const groundTiles = map.addTilesetImage('ground', null);
-        const powerupTiles = map.addTilesetImage('powerUps', null);
+        const groundTiles = map.addTilesetImage('ground');
+        const powerupTiles = map.addTilesetImage('powerUps');
 
         const groundLayer = map.createBlankDynamicLayer('ground', groundTiles);
         this.groundLayer = groundLayer;
@@ -126,7 +137,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     onPowerUpCollision() {
-        return (player, powerup) => {
+        return (player: Player, powerup: Tile) => {
             /* TODO: Picking up a powerup should make the curse respawn somewhere else in the map */
             player.isCursed = false;
 
@@ -172,9 +183,9 @@ export class MainScene extends Phaser.Scene {
      * @param {integer} x
      * @param {integer} y
      */
-    spawnPowerup(x, y) {
+    spawnPowerup(x: number, y: number) {
         if (this.powerUpStash.length > 0) {
-            this.powerupLayer.putTileAt(this.powerUpStash.pop(), x, y);
+            this.powerupLayer.putTileAt(this.powerUpStash.pop() as number, x, y);
         }
     }
 
@@ -183,7 +194,7 @@ export class MainScene extends Phaser.Scene {
      * @param {integer} x
      * @param {integer} y
      */
-    spawnWall(x, y) {
+    spawnWall(x: number, y: number) {
         let boardCenterX = Math.round((MAP_WIDTH - 2) / 2);
         let boardCenterY = Math.round((MAP_HEIGHT - 2) / 2);
 
@@ -202,7 +213,7 @@ export class MainScene extends Phaser.Scene {
      * @param {integer} x
      * @param {integer} y
      */
-    destroyWall(x, y) {
+    destroyWall(x: number, y: number) {
         let tileAt = this.wallLayer.getTileAt(x, y);
         if (tileAt && tileAt.index === 1) {
             this.wallLayer.removeTileAt(x, y);
@@ -214,104 +225,6 @@ export class MainScene extends Phaser.Scene {
             }
         }
     }
-
-    //startConnection() {
-    //    const WebSocketClient = require('websocket').client;
-    //
-    //    const client = new WebSocketClient();
-    //
-    //    client.on('connectFailed', error => console.log('Connect Error: ' + error.toString()));
-    //
-    //    const WebSocketConnection = require("websocket/lib/WebSocketConnection");
-    //    /** @param {WebSocketConnection} connection */
-    //    let initConnection = function(connection) {
-    //        console.log('WebSocket Client Connected');
-    //
-    //        connection.on('error', error => console.log("Connection Error: " + error.toString()));
-    //        connection.on('close', () => console.log('echo-protocol Connection Closed'));
-    //        connection.on('message', message => {
-    //            if (message.type === 'utf8') {
-    //                console.log("Received: '" + message.utf8Data + "'");
-    //            }
-    //        });
-    //
-    //        function sendNumber() {
-    //            if (connection.connected) {
-    //                const number = Math.round(Math.random() * 0xFFFFFF);
-    //                connection.sendUTF(number.toString());
-    //                setTimeout(sendNumber, 1000);
-    //            }
-    //        }
-    //
-    //        sendNumber();
-    //    };
-    //    client.on('connect', initConnection);
-    //
-    //    client.connect('ws://localhost:8080/', 'echo-protocol');
-    //}
-
-    //startConnection() {
-    //    let spawns = this.getSpawnPosition();
-    //
-    //    this.socket = io({path: "/api/multiplayer"});
-    //
-    //    this.socket.on('welcome', playerInfo => {
-    //        console.log(playerInfo);
-    //        let playerNumber = playerInfo.playerNumber;
-    //
-    //        this.activePlayers.push(playerNumber);
-    //        let spawn = spawns[playerNumber];
-    //        let player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), playerInfo, false);
-    //        player.setCollisionLayer([this.groundLayer, this.wallLayer, this.powerupLayer]);
-    //        this.cameras.main.startFollow(player);
-    //
-    //        this.players.set(playerInfo.playerNumber, player);
-    //
-    //        this.socket.emit("hello", player.getInfo());
-    //    });
-    //
-    //    this.socket.on('currentPlayers', (state) => {
-    //        Object.keys(state).forEach(key => {
-    //            let playerInfo = state[key];
-    //            if (this.activePlayers.includes(playerInfo.playerNumber)) {
-    //                let player = this.players.get(key);
-    //                if (player) {
-    //                    if (playerInfo.position) {
-    //                        [player.x, player.y] = [playerInfo.position.x, playerInfo.position.y];
-    //                        console.log("posset" + playerInfo.playerNumber);
-    //                    }
-    //                    player.isDead = playerInfo.isDead;
-    //                    player.isCursed = playerInfo.isCursed;
-    //                } else {
-    //                    let spawn = spawns[playerInfo.playerNumber];
-    //                    player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), playerInfo, true);
-    //                    this.players.set(playerInfo.id, player);
-    //                }
-    //            }
-    //
-    //        })
-    //        console.log(state);
-    //    });
-    //
-    //    this.socket.on('PM', state => {
-    //        console.log(`Player move received`);
-    //        /** @type {Player} */
-    //        let player = this.players.get(state[0]);
-    //        if (player) {
-    //            player.walkTo(state[1], state[2], state[3]);
-    //        }
-    //    });
-    //
-    //    this.socket.on('playerLeft', playerId => {
-    //        console.log(`Player left received`);
-    //        /** @type {Player} */
-    //        let player = this.players.get(playerId);
-    //        if (player) {
-    //            this.players.delete(playerId)
-    //            player.destroy();
-    //        }
-    //    });
-    //}
 
     getSpawnPosition() {
         // Players spawn positions
@@ -346,13 +259,15 @@ export class MainScene extends Phaser.Scene {
         }
     }
 
-    createPlayer(playerNum) {
+    createPlayer(playerNum: number) {
         if (!this.players.has(playerNum)) {
-            //this.activePlayers.push(playerNum);
             let spawnPosition = this.getSpawnPosition();
             let spawn = spawnPosition[playerNum];
 
-            let player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), {playerNumber: playerNum}, false);
+            let player = new Player(this, spawn.getCenterX(), spawn.getCenterY(), {
+                id: "id",
+                playerNumber: playerNum,
+            }, false);
             player.setCollisionLayer([this.groundLayer, this.wallLayer, this.powerupLayer]);
             this.players.set(playerNum, player);
 

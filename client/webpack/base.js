@@ -4,27 +4,20 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 
 module.exports = {
-    entry: "./src/client/index.ts",
+    entry: "./src/index.ts",
     mode: "development",
     devtool: 'inline-source-map',
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, './dist'),
+        path: path.resolve(__dirname, '../dist'),
+        sourceMapFilename: "bundle.js.map"
     },
     module: {
         rules: [
-            {
-                test: [/\.tsx?$/],
-                use: "ts-loader"
-            },
-            {
-                test: [/\.vert$/, /\.frag$/],
-                use: "raw-loader"
-            },
-            {
-                test: /\.(gif|png|jpe?g|svg|xml)$/i,
-                use: "file-loader"
-            }
+            {test: [/\.tsx?$/], use: "ts-loader"},
+            {test: /\.js$/, use: "source-map-loader", enforce: "pre"},
+            {test: [/\.vert$/, /\.frag$/], use: "raw-loader"},
+            {test: /\.(gif|png|jpe?g|svg|xml)$/i, use: "file-loader"}
         ]
     },
     resolve: {
