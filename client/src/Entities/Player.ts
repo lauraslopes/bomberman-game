@@ -130,6 +130,10 @@ export class Player extends Container {
 
     set bombs(value) {
         this._bombs = Math.min(value, MAX_BOMB);
+
+        // Update player scoreboard
+        let divName = "player" + (this.playerNumber + 1) + "LivesSpan";
+        document.getElementById(divName)!.innerHTML = this._bombs.toString();
     }
 
     //endregion

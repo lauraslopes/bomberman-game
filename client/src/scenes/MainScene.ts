@@ -134,6 +134,9 @@ export class MainScene extends Phaser.Scene {
         }
 
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        
+        // Show Points bar
+        document.getElementById("multiplayerStatusBar")!.style.visibility = "visible";
     }
 
     onPowerUpCollision() {

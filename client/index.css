@@ -1,0 +1,19 @@
+.statusBar {
+    display: flex;
+    align-content: space-between;
+    align-items: center;
+    width: 672px;
+    margin: 0 auto;
+    visibility: collapse;
+}
+
+#timeLeftSpan{
+    flex-grow: 2;
+    text-align: center;
+}
+
+.life {
+    flex-grow: 1;
+    margin: 0 1rem;
+    text-align: center;
+}

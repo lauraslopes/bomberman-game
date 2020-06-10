@@ -1,9 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <link rel="stylesheet" type="text/css" href="index.css">
         <meta charset="utf-8">
         <title>Bomberman</title>
     </head>
     <body>
+        <div id="multiplayerStatusBar" class="statusBar">
+            <div id="player1Life" class="life">
+                <img src="src/assets/UI/p1.png"/>
+                <span id="player1LivesSpan" class="life">1</span>
+            </div>
+            <div id="player2Life" class="life">
+                <img src="src/assets/UI/p2.png"/>
+                <span id="player2LivesSpan" class="life">1</span>
+            </div>
+            <span id="timeLeftSpan">Test</span>
+             <div id="player3Life" class="life">
+                <img src="src/assets/UI/p3.png"/>
+                <span id="player3LivesSpan" class="life">1</span>
+            </div>
+            <div id="player4Life" class="life">
+                <img src="src/assets/UI/p4.png"/>
+                <span id="player4LivesSpan" class="life">1</span>
+            </div>
+        </div>
+        <!-- switch visibility when we're on single player mode-->
+        <!--<div id="singlePlayerStatusBar" class="statusBar"></div>-->
     </body>
 </html>
