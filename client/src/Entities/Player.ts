@@ -1,5 +1,6 @@
 import {MAX_BOMB, MAX_POWER, MAX_SPEED, PlayerConfigDictionary, PlayerDirection} from "../Constants";
 import {GameScene} from "../../@types/GameScene";
+import {Bomb} from "../Entities/Bomb";
 
 import ParticleEmitter = Phaser.GameObjects.Particles.ParticleEmitter;
 import Sprite = Phaser.GameObjects.Sprite;
@@ -154,6 +155,13 @@ export class Player extends Container {
         this.playerSprite = sprite;
     }
 
+    plantBomb() {
+      if (this.bombs > 0){
+        new Bomb(this.scene, this.x, this.y, this.power);
+        this.bombs--;
+      }
+    }
+
     createCursor() {
         let keys = PlayerConfigDictionary.getConfig(this.playerNumber).keys;
 
@@ -165,6 +173,8 @@ export class Player extends Container {
                 left: this.scene.input.keyboard.addKey(keys.left),
                 space: this.scene.input.keyboard.addKey(keys.space),
             };
+
+            this.cursors.space.on('down', () => this.plantBomb());
         }
     }
 
